@@ -1,90 +1,173 @@
-// Mobile navigation toggle
-const navToggle = document.getElementById('navToggle');
-const mainNav = document.getElementById('mainNav');
+document.addEventListener('DOMContentLoaded', function () {
+    // Menu de navegação para mobile
+    const navToggle = document.getElementById('navToggle');
+    const mainNav = document.getElementById('mainNav');
 
-navToggle.addEventListener('click', () => {
-    mainNav.classList.toggle('active');
-});
+    if (navToggle) {
+        navToggle.addEventListener('click', function () {
+            mainNav.classList.toggle('active');
 
-// Back to top button
-const backToTop = document.getElementById('backToTop');
-
-window.addEventListener('scroll', () => {
-    if (window.scrollY > 300) {
-        backToTop.classList.add('show');
-    } else {
-        backToTop.classList.remove('show');
+            // Alterna o ícone do menu
+            const icon = this.querySelector('i');
+            if (icon.classList.contains('fa-bars')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
     }
-});
 
-backToTop.addEventListener('click', (e) => {
-    e.preventDefault();
-    const yOffset = -80; // Ajuste conforme altura do seu header
-    const target = document.getElementById('top');
-    const y = target.getBoundingClientRect().top + window.pageYOffset + yOffset;
-
-    window.scrollTo({
-        top: y,
-        behavior: 'smooth'
+    // Fechar menu quando um link é clicado
+    const navLinks = document.querySelectorAll('#mainNav a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (mainNav.classList.contains('active')) {
+                mainNav.classList.remove('active');
+                const icon = navToggle.querySelector('i');
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
     });
-});
 
+    // Seletor de idioma
+    const languageToggle = document.getElementById('languageToggle');
+    const languageDropdown = document.getElementById('languageDropdown');
+    const currentLanguage = document.getElementById('currentLanguage');
 
+    if (languageToggle) {
+        languageToggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            languageDropdown.classList.toggle('active');
+        });
+    }
 
+    if (languageDropdown) {
+        const languageOptions = languageDropdown.querySelectorAll('a');
 
-// Smooth scrolling for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
+        languageOptions.forEach(option => {
+            option.addEventListener('click', function (e) {
+                e.preventDefault();
+                const langCode = this.getAttribute('data-lang');
+                const imgSrc = this.querySelector('img').src;
 
-        const target = document.querySelector(this.getAttribute('href'));
+                // Atualiza imagem do idioma atual
+                currentLanguage.src = imgSrc;
 
-        if (target) {
-            mainNav.classList.remove('active');
-
-            window.scrollTo({
-                top: target.offsetTop - 80,
-                behavior: 'smooth'
+                // Aqui você pode adicionar lógica para mudar o idioma do site
+                languageDropdown.classList.remove('active');
             });
+        });
+    }
+
+    // Fechar dropdown de idioma ao clicar fora
+    document.addEventListener('click', function (e) {
+        if (languageDropdown && languageDropdown.classList.contains('active')) {
+            if (!e.target.closest('.language-selector')) {
+                languageDropdown.classList.remove('active');
+            }
         }
     });
-});
 
-// Seletores
-const languageToggle = document.getElementById("languageToggle");
-const languageDropdown = document.getElementById("languageDropdown");
-const currentLangImg = document.getElementById("currentLanguage");
-const languageLinks = document.querySelectorAll('.language-dropdown a');
+    // Botão Voltar ao Topo
+    const backToTopButton = document.getElementById('backToTop');
 
-// Abre/fecha dropdown ao clicar no botão
-languageToggle.addEventListener("click", () => {
-    languageDropdown.classList.toggle("show");
-});
+    if (backToTopButton) {
+        window.addEventListener('scroll', function () {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('active');
+            } else {
+                backToTopButton.classList.remove('active');
+            }
+        });
+    }
 
-// Fecha o dropdown ao clicar fora
-window.addEventListener("click", function (e) {
-    if (!languageToggle.contains(e.target) && !languageDropdown.contains(e.target)) {
-        languageDropdown.classList.remove("show");
+    // Header fixo com mudança de estilo ao rolar
+    const header = document.querySelector('header');
+
+    if (header) {
+        window.addEventListener('scroll', function () {
+            if (window.pageYOffset > 100) {
+                header.style.padding = '5px 0';
+                header.style.background = 'rgba(255, 255, 255, 0.98)';
+                header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+            } else {
+                header.style.padding = '';
+                header.style.background = '';
+                header.style.boxShadow = '';
+            }
+        });
+    }
+
+    // Animação de fade-in para elementos ao rolar
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.1
+    });
+
+    // Elementos a serem animados
+    const animatedElements = document.querySelectorAll('.section-title, .service-card, .step, .testimonial-card, .achievement');
+
+    animatedElements.forEach(element => {
+        observer.observe(element);
+    });
+
+    // Validação do formulário
+    const contactForm = document.querySelector('.contact-form form');
+
+    if (contactForm) {
+        contactForm.addEventListener('submit', function (e) {
+            let valid = true;
+            const name = document.getElementById('name');
+            const email = document.getElementById('email');
+            const service = document.getElementById('service');
+            const message = document.getElementById('message');
+
+            // Validação básica
+            if (name.value.trim() === '') {
+                valid = false;
+                highlightField(name);
+            }
+
+            if (email.value.trim() === '' || !isValidEmail(email.value)) {
+                valid = false;
+                highlightField(email);
+            }
+
+            if (service.value === '') {
+                valid = false;
+                highlightField(service);
+            }
+
+            if (message.value.trim() === '') {
+                valid = false;
+                highlightField(message);
+            }
+
+            if (!valid) {
+                e.preventDefault();
+                alert('Por favor, preencha todos os campos obrigatórios corretamente.');
+            }
+        });
+    }
+
+    function highlightField(field) {
+        field.style.borderColor = 'red';
+        field.addEventListener('input', function () {
+            this.style.borderColor = '';
+        }, { once: true });
+    }
+
+    function isValidEmail(email) {
+        const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
     }
 });
-
-// Muda a bandeira exibida no botão principal
-function changeCurrentFlag(lang) {
-    const flagMap = {
-        pt: "br.webp",
-        en: "eua.png",
-        es: "esp.png"
-    };
-    currentLangImg.src = `images/${flagMap[lang]}`;
-}
-
-// Clica na bandeira → troca imagem e fecha menu
-languageLinks.forEach(link => {
-    link.addEventListener('click', function (e) {
-        e.preventDefault();
-        const selectedLang = this.getAttribute('data-lang');
-        changeCurrentFlag(selectedLang);
-        languageDropdown.classList.remove("show");
-    });
-});
-
